@@ -4,6 +4,7 @@ from hashlib import md5
 import sys, json
 import requests
 import re
+import pysolr
 
 # TODO 
 # 2017: w niektorych brak contentu, dodajace sie skrypty jquery do contentu, niezamkniety tag w 'moneta roku 2017'
@@ -16,10 +17,14 @@ import re
 
 simple_json = {}
 l = []
+server = '150.254.78.133'
+core = 'isi'
+solr_url = 'http://%s:8983/solr/%s' % (server, core)
+solr = pysolr.Solr(solr_url)
 #year = sys.argv[1]
 # year = 2002
 
-for year in range (1998, 2005):
+for year in range (2018, 2019):
 
     index = urllib.request.urlopen('http://www.nbp.pl/home.aspx?f=/aktualnosci/wiadomosci_{0}.htm'.format(year))
     index_soup = BeautifulSoup(index, 'lxml')
@@ -33,8 +38,8 @@ for year in range (1998, 2005):
         if anchors[a].get('href').startswith('/home.aspx'):
             # ignoring non-ascii characters in link
             href = anchors[a].get('href').encode('utf-8').decode('ascii', 'ignore')
-            # url = 'http://www.nbp.pl{0}'.format(href)
-            url = 'http://www.nbp.pl/home.aspx?f=aktualnosci/wiadomosci_2004/rpp_250804_rpp.html'
+            url = 'http://www.nbp.pl{0}'.format(href)
+            # url = 'http://www.nbp.pl/home.aspx?f=aktualnosci/wiadomosci_2004/rpp_250804_rpp.html'
             request = requests.get(url)
             if not request.status_code == 200: # if site doesn't exist go to another one
                 continue
@@ -129,3 +134,6 @@ for year in range (1998, 2005):
             simple_json['content'] = content
 
         print(simple_json)
+        break
+
+solr.add([simple_json])
